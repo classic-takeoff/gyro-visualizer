@@ -16,10 +16,10 @@
     <h1>陀螺仪姿态可视化<small>DeviceOrientation · 实时偏转角度</small></h1>
     <div id="topRight">
       <span class="chip"><span id="dotLive" class="dot"></span><span id="chipMode">—</span></span>
-      <span class="chip">事件 <b id="chipHz">0 Hz</b></span>
-      <span class="chip">方向 <b id="chipAbs">—</b></span>
+      <span class="chip opt" id="chipHzWrap">事件 <b id="chipHz">0 Hz</b></span>
+      <span class="chip opt" id="chipAbsWrap">基准 <b id="chipAbs">—</b></span>
       <div class="seg" id="segMode">
-        <button data-mode="sim" class="active">模拟模式</button>
+        <button data-mode="sim" class="active">模拟</button>
         <button data-mode="sensor">传感器</button>
       </div>
       <button class="iconbtn" id="btnHelp" title="帮助">?</button>
@@ -29,7 +29,7 @@
   <main>
     <!-- 左: 3D 场景 -->
     <section class="card" id="sceneCard">
-      <h2>3D 姿态<span class="sub">按住拖动旋转视角 · 滚轮缩放 · 单击复位</span></h2>
+      <h2>3D 姿态<span class="sub">拖动旋转 · 滚轮缩放 · 单击复位视角 · 双击重新对准</span></h2>
       <div id="scene">
         <div class="stage">
           <div class="camz" id="camz">
@@ -41,11 +41,7 @@
               </div>
               <div id="phone">
                 <div class="face f-front"><div class="shade"></div>
-                  <div class="screen">
-                    <div class="cam"></div>
-                    <div class="slit"></div>
-                    <div class="home"></div>
-                  </div>
+                  <div class="screen"><div class="cam"></div><div class="slit"></div><div class="home"></div></div>
                 </div>
                 <div class="face f-back"><div class="shade"></div>
                   <div class="backface"><div class="ring"></div><div class="dot"></div><div class="line"></div></div>
@@ -63,38 +59,21 @@
           <span class="y"><i></i>y 顶部</span>
           <span class="z"><i></i>z 屏幕法线</span>
         </div>
-        <div id="compass">
-          <svg viewBox="0 0 100 100" id="compassSvg"></svg>
-        </div>
-      </div>
-      <!-- 模型修正 + 平滑 -->
-      <div class="viewbar">
-        <button class="toolbtn primary" id="btnCalib" title="把模型当前姿态作为“竖立正对观察者”的基准(适合先平放后立起/部分机型坐标不同)">
-          🎯 对准我
-        </button>
-        <button class="toolbtn" id="btnSpinL" title="模型绕屏幕法线逆时针转 90°">↺ 90°</button>
-        <button class="toolbtn" id="btnSpinR" title="模型绕屏幕法线顺时针转 90°">↻ 90°</button>
-        <button class="toolbtn" id="btnCamReset" title="清除修正并复位视角">重置</button>
-        <span id="fixChip">模型已修正</span>
-        <div class="smooth">
-          <span>平滑</span>
-          <input type="range" id="smoothR" min="0" max="100" value="45" step="1">
-          <span id="smVal">45</span>
-        </div>
+        <div class="scenehint2" id="sceneMsg"></div>
       </div>
     </section>
 
     <!-- 右: 数据 -->
     <aside id="side">
       <section class="card">
-        <h2>偏转角度<span class="sub">W3C 设备朝向角</span></h2>
+        <h2>偏转角度<span class="sub">相对起始拿姿(α 方位/β 俯仰/γ 横滚)</span></h2>
         <div class="reads">
           <div class="read a"><div class="k"><span class="greek">α</span>方位/偏航</div>
             <div class="v"><span id="vA">0.0</span><span class="u">°</span></div><div class="range">0 – 360</div></div>
-          <div class="read b"><div class="k"><span class="greek">β</span>俯仰/前后倾</div>
-            <div class="v"><span id="vB">0.0</span><span class="u">°</span></div><div class="range">0 – 180</div></div>
-          <div class="read g"><div class="k"><span class="greek">γ</span>横滚/左右倾</div>
-            <div class="v"><span id="vG">0.0</span><span class="u">°</span></div><div class="range">−90 – 90</div></div>
+          <div class="read b"><div class="k"><span class="greek">β</span>俯仰</div>
+            <div class="v"><span id="vB">90.0</span><span class="u">°</span></div><div class="range">平放0 · 竖立90 · 翻转180</div></div>
+          <div class="read g"><div class="k"><span class="greek">γ</span>横滚</div>
+            <div class="v"><span id="vG">0.0</span><span class="u">°</span></div><div class="range">−90左 · 0正 · 90右</div></div>
         </div>
         <div id="poseLine"></div>
         <div class="banner" id="msgSensor"><span>📡</span><span id="msgSensorText"></span></div>
@@ -103,35 +82,35 @@
 
       <section class="card">
         <h2>姿态仪表</h2>
-        <div class="barBox"><h3>α 方位角<span class="bv" style="--c:var(--a)"><b id="bvA">0.0°</b></span></h3>
-          <div class="track c"><div class="fill" id="fillA"></div><div class="mark" style="left:100%"></div></div>
-          <div class="scales"><span>0° 北</span><span>90° 西</span><span>180° 南</span><span>270° 东</span><span>360°</span></div>
+        <div class="barBox"><h3>α 偏航角<span class="bv" style="--c:var(--a)"><b id="bvA">0.0°</b></span></h3>
+          <div class="track c"><div class="fill" id="fillA"></div></div>
+          <div class="scales"><span>0° 起始</span><span>90°</span><span>180°</span><span>270°</span><span>360°</span></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
-          <div class="barBox"><h3>β 俯仰<span class="bv" style="--c:var(--b)"><b id="bvB">0.0°</b></span></h3>
+          <div class="barBox"><h3>β 俯仰<span class="bv" style="--c:var(--b)"><b id="bvB">90.0°</b></span></h3>
             <div class="track b"><div class="fill" id="fillB"></div><div class="mark" style="left:50%"></div></div>
             <div class="scales"><span>0 平放</span><span>90 竖立</span><span>180 翻转</span></div>
           </div>
           <div class="barBox"><h3>γ 横滚<span class="bv" style="--c:var(--g)"><b id="bvG">0.0°</b></span></h3>
             <div class="track g"><div class="fill" id="fillG"></div><div class="mark" style="left:50%"></div></div>
-            <div class="scales"><span>−90 左</span><span>0 正</span><span>90 右</span></div>
+            <div class="scales"><span>−90</span><span>0 正</span><span>90</span></div>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <h2>实时曲线<span class="sub">最近 30 秒(平滑后) · 点击 ⏸ 暂停</span></h2>
+        <h2>实时曲线<span class="sub">最近 30 秒 · 点击 ⏸ 暂停</span></h2>
         <div id="chartLegend">
-          <span><i style="background:var(--a)"></i>α 方位</span>
-          <span><i style="background:var(--b)"></i>β 俯仰</span>
-          <span><i style="background:var(--g)"></i>γ 横滚</span>
+          <span><i style="background:var(--a)"></i>α</span>
+          <span><i style="background:var(--b)"></i>β</span>
+          <span><i style="background:var(--g)"></i>γ</span>
           <span id="chartPause" style="margin-left:auto;cursor:pointer;user-select:none">⏸</span>
         </div>
         <div id="chartWrap"><canvas id="chart"></canvas></div>
       </section>
 
       <section class="card">
-        <h2>模拟控制<span class="sub">无陀螺仪时用滑杆演示姿态</span></h2>
+        <h2>模拟控制<span class="sub">电脑或无传感器时演示</span></h2>
         <div class="sim">
           <div class="simRow"><span class="sk" style="color:var(--a)">α</span>
             <input type="range" id="simA" min="0" max="360" step="0.5" value="0">
@@ -158,36 +137,26 @@
     <button class="iconbtn close" id="btnHelpClose">✕</button>
     <h2>🧭 陀螺仪姿态可视化 — 帮助</h2>
 
-    <h3>角度含义（遵循 W3C Device Orientation Events 规范）</h3>
-    <div class="axisRow"><code>α</code> 方位角/偏航 (0–360°)：绕“屏幕法线”的转角；设备平放时 ≈ 顶部指向，0°=北、90°=西、180°=南、270°=东。</div>
-    <div class="axisRow"><code>β</code> 俯仰/前后倾 (0–180°)：绕左右方向轴的倾角；0°=平放(屏朝上)、90°=竖立、180°=翻转(屏朝下)。</div>
-    <div class="axisRow"><code>γ</code> 横滚/左右倾 (−90–90°)：绕顶部方向轴的倾角；0°=端正、正=右倾、负=左倾。</div>
-    <p>模型上的彩色射线 = 设备坐标轴：<span style="color:#ff8f8f">红 x(向右)</span>、<span style="color:#6cf0a4">绿 y(顶部)</span>、<span style="color:#7ad9ff">蓝 z(屏幕法线/朝向)</span>。浅色面为手机背面，深色屏幕为正面。</p>
-
-    <h3>第一次打开：模型方向不对怎么办？(很重要)</h3>
-    <p>不同手机/浏览器对坐标系基准的实现在在差异（部分机型传感器“自然方向”是横屏等），若你<b>竖握手机正对屏幕</b>时模型却是横向/躺倒的，请：</p>
+    <h3>怎么用</h3>
     <ol>
-      <li>保持<b>竖屏</b>（建议锁定竖排），把手机竖着正对自己拿好；</li>
-      <li>点场景下方的 <b>🎯 对准我</b> —— 模型会立刻以“当前姿态=竖立、屏幕正对观察者”为基准重新显示；</li>
-      <li>若仍差 90°/180°，用 <b>↺90° / ↻90°</b> 微调；不想要了点 <b>重置</b>。</li>
-    </ol>
-    <p>校准只影响 3D 模型朝向，不影响右侧 α/β/γ 原始读数。读数是按 W3C 规范的解释；个别机型读数本身的符号/基准也可能不同（多数教程里提到的横竖屏差异即属此类）。</p>
-
-    <h3>抖动太灵敏？</h3>
-    <p>「平滑」滑杆调节滤波强度：越大越稳（滞后略明显），越小越跟手（抖动多）。默认 45，可在 0–100 间按喜好调。曲线显示的是平滑后数值。</p>
-
-    <h3>手机真机使用</h3>
-    <ol>
-      <li>浏览器只在 <b>HTTPS 或 localhost</b> 下提供方向传感器：把页面部署到任意静态托管（本页已在 GitHub Pages）用手机打开。</li>
-      <li>点右上角 <b>「传感器」</b>；iOS 弹窗点允许。若长时间无数据：检查 HTTPS、权限、是否浏览器内置页。</li>
-      <li>状态 <code>方向:绝对</code> = 罗盘绝对方位；<code>相对</code> = 仅相对航向（α 会漂）。</li>
+      <li>用手机(建议<b>竖屏</b>)打开本页(需 HTTPS)，点右上角<b>「传感器」</b>；iOS 会弹窗，点“允许”。</li>
+      <li>授权后<b>按平时拿手机的样子竖着拿好</b>，1 秒内页面自动以此姿势作为“起始基准”：此时模型显示为竖立、屏幕正对观察者，α/β/γ 归到 90/0 等基准值。</li>
+      <li>之后转动/倾斜手机，模型与角度随之相对变化：平放桌面→模型平放(β→0)；翻转→模型翻面(β→180)；左右倾→γ 正负。</li>
+      <li>若中途想换基准：<b>在 3D 画面上快速双击</b>即可用你当前拿法重新对准。单击画面 = 复位视角；按住拖动 = 转视角；滚轮/双指缩放。</li>
     </ol>
 
-    <h3>电脑（无陀螺仪）体验</h3>
-    <p>自动进入「模拟模式」：用左侧 α/β/γ 滑杆或 <b>演示摇摆</b>，3D 模型同步转动；按住画面拖动换视角。</p>
+    <h3>角度为什么是“相对”的</h3>
+    <p>不同手机/浏览器的传感器坐标基准差异很大（不少机型硬件方向为横屏）。为让“你怎么拿，模型就怎么显示”，页面把<b>你授权那一刻的拿姿自动设为基准</b>，此后 α/β/γ 均为相对该基准的角度，含义直观且跨机型一致：β 90=竖立正对、0=平放屏朝上、180=翻转屏朝下；γ 左/右倾；α 绕屏幕法线转动。</p>
+    <p>读数经过平滑滤波，避免手持微抖造成跳动；若嫌太“钝”，模型永远跟手但不剧烈抖。</p>
 
-    <h3>技术说明</h3>
-    <p>零依赖纯静态：CSS 3D 渲染、Canvas 曲线。姿态矩阵在 <code>js/orient.js</code>（W3C 约定 + Rodrigues 迭代），校准=乘固定旋转矩阵 <code>X</code>；数学配有 Node 交叉验证（<code>node tests/orient.test.mjs</code>）。方向数据仅在本机浏览器计算，绝不上传。</p>
+    <h3>模型怎么看</h3>
+    <p>深色渐变=屏幕正面，浅色=机身背面；模型上发光射线为设备坐标轴：红 x(向右)、绿 y(顶部)、蓝 z(屏幕法线)。</p>
+
+    <h3>没有传感器 / 想先看效果</h3>
+    <p>电脑浏览器自动进入<b>模拟模式</b>：用 α/β/γ 滑杆或“演示摇摆”驱动同一套渲染。</p>
+
+    <h3>隐私与实现</h3>
+    <p>方向数据仅在本机浏览器计算，绝不上传。零依赖：CSS 3D 渲染、Canvas 曲线、姿态矩阵在 <code>js/orient.js</code>（附 Node 交叉验证 <code>node tests/orient.test.mjs</code>）。</p>
   </div>
 </div>
 
