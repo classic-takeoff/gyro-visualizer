@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06080f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>陀螺仪姿态可视化 · Gyro Visualizer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%B2%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="logo">🧭</span>
+    <h1>陀螺仪姿态可视化<small>DeviceOrientation · 实时偏转角度</small></h1>
+    <div id="topRight">
+      <span class="chip"><span id="dotLive" class="dot"></span><span id="chipMode">—</span></span>
+      <span class="chip">事件 <b id="chipHz">0 Hz</b></span>
+      <span class="chip">方向 <b id="chipAbs">—</b></span>
+      <div class="seg" id="segMode">
+        <button data-mode="sim" class="active">模拟模式</button>
+        <button data-mode="sensor">传感器</button>
+      </div>
+      <button class="iconbtn" id="btnHelp" title="帮助">?</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 左: 3D 场景 -->
+    <section class="card" id="sceneCard">
+      <h2>3D 姿态<span class="sub">按住拖动旋转视角 · 滚轮缩放 · 双击复位</span></h2>
+      <div id="scene">
+        <div class="stage">
+          <div class="camz" id="camz">
+            <div class="orbit" id="orbit">
+              <div id="phone">
+                <div class="face f-front"><div class="shade"></div>
+                  <div class="screen">
+                    <div class="sheen"></div>
+                    <div class="cam"></div>
+                    <div class="slit"></div>
+                    <div class="home"></div>
+                  </div>
+                </div>
+                <div class="face f-back"><div class="shade"></div>
+                  <div class="backface"><div class="ring"></div><div class="dot"></div><div class="line"></div></div>
+                </div>
+                <div class="face f-side f-right"><div class="shade"></div></div>
+                <div class="face f-side f-left"><div class="shade"></div></div>
+                <div class="face f-end f-top"><div class="shade"></div></div>
+                <div class="face f-end f-bottom"><div class="shade"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="scenehint">
+          <span class="x"><i></i>设备 x·向右</span>
+          <span class="y"><i></i>设备 y·顶部</span>
+          <span class="z"><i></i>设备 z·屏幕法线</span>
+        </div>
+        <div id="compass">
+          <svg viewBox="0 0 100 100" id="compassSvg"></svg>
+        </div>
+        <div class="scenehint2">拖动视角 · 左侧滑杆可模拟 · <b id="poseWord"></b></div>
+      </div>
+    </section>
+
+    <!-- 右: 数据 -->
+    <aside id="side">
+      <section class="card">
+        <h2>偏转角度<span class="sub">W3C 设备朝向角</span></h2>
+        <div class="reads">
+          <div class="read a"><div class="k"><span class="greek">α</span>方位/偏航</div>
+            <div class="v"><span id="vA">0.0</span><span class="u">°</span></div><div class="range">0 – 360</div></div>
+          <div class="read b"><div class="k"><span class="greek">β</span>俯仰/前后倾</div>
+            <div class="v"><span id="vB">0.0</span><span class="u">°</span></div><div class="range">0 – 180</div></div>
+          <div class="read g"><div class="k"><span class="greek">γ</span>横滚/左右倾</div>
+            <div class="v"><span id="vG">0.0</span><span class="u">°</span></div><div class="range">−90 – 90</div></div>
+        </div>
+        <div id="poseLine"></div>
+        <div class="banner" id="msgSensor"><span>📡</span><span id="msgSensorText"></span></div>
+        <div class="banner err" id="msgError"><span>⚠️</span><span id="msgErrorText"></span><button class="btn ghost" id="btnEnable" style="display:none">点击请求授权</button></div>
+      </section>
+
+      <section class="card">
+        <h2>姿态仪表</h2>
+        <div class="barBox"><h3>α 方位角<span class="bv" style="--c:var(--a)"><b id="bvA">0.0°</b></span></h3>
+          <div class="track c"><div class="fill" id="fillA"></div><div class="mark" style="left:100%"></div></div>
+          <div class="scales"><span>0° 北</span><span>90° 西</span><span>180° 南</span><span>270° 东</span><span>360°</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+          <div class="barBox"><h3>β 俯仰<span class="bv" style="--c:var(--b)"><b id="bvB">0.0°</b></span></h3>
+            <div class="track b"><div class="fill" id="fillB"></div><div class="mark" style="left:50%"></div></div>
+            <div class="scales"><span>0 平放</span><span>90 竖立</span><span>180 翻转</span></div>
+          </div>
+          <div class="barBox"><h3>γ 横滚<span class="bv" style="--c:var(--g)"><b id="bvG">0.0°</b></span></h3>
+            <div class="track g"><div class="fill" id="fillG"></div><div class="mark" style="left:50%"></div></div>
+            <div class="scales"><span>−90 左</span><span>0 正</span><span>90 右</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>实时曲线<span class="sub">最近 30 秒 · 点击 ⏸ 暂停</span></h2>
+        <div id="chartLegend">
+          <span><i style="background:var(--a)"></i>α 方位</span>
+          <span><i style="background:var(--b)"></i>β 俯仰</span>
+          <span><i style="background:var(--g)"></i>γ 横滚</span>
+          <span id="chartPause" style="margin-left:auto;cursor:pointer;user-select:none">⏸</span>
+        </div>
+        <div id="chartWrap"><canvas id="chart"></canvas></div>
+      </section>
+
+      <section class="card">
+        <h2>模拟控制<span class="sub">无陀螺仪时用滑杆演示姿态</span></h2>
+        <div class="sim">
+          <div class="simRow"><span class="sk" style="color:var(--a)">α</span>
+            <input type="range" id="simA" min="0" max="360" step="0.5" value="0">
+            <span class="sv" id="simAv">0.0°</span></div>
+          <div class="simRow"><span class="sk" style="color:var(--b)">β</span>
+            <input type="range" id="simB" min="0" max="180" step="0.5" value="0">
+            <span class="sv" id="simBv">0.0°</span></div>
+          <div class="simRow"><span class="sk" style="color:var(--g)">γ</span>
+            <input type="range" id="simG" min="-90" max="90" step="0.5" value="0">
+            <span class="sv" id="simGv">0.0°</span></div>
+          <div class="simActions">
+            <button class="btn" id="btnDemo">▶ 演示摇摆</button>
+            <button class="btn" id="btnZero">归零</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<!-- 帮助 -->
+<div class="overlay" id="helpOv">
+  <div class="modal">
+    <button class="iconbtn close" id="btnHelpClose">✕</button>
+    <h2>🧭 陀螺仪姿态可视化 — 帮助</h2>
+
+    <h3>角度含义（遵循 W3C Device Orientation Events 规范）</h3>
+    <div class="axisRow"><span><span class="ax x"></span></span><code>α</code> 方位角/偏航 (0–360°)：绕“屏幕法线”的转角；设备平放时 ≈ 顶部指向，0°=北、90°=西、180°=南、270°=东。</div>
+    <div class="axisRow"><code>β</code> 俯仰/前后倾 (0–180°)：绕左右方向轴的倾角；0°=平放(屏朝上)、90°=竖立、180°=翻转(屏朝下)。</div>
+    <div class="axisRow"><code>γ</code> 横滚/左右倾 (−90–90°)：绕顶部方向轴的倾角；0°=端正、正=右倾、负=左倾。</div>
+    <p>参考初始姿态：设备平放桌面、屏朝上、顶朝北 → (α,β,γ)=(0,0,0)。设备系：x 屏幕向右、y 指向顶部、z 垂直屏幕向外。旋转顺序为 α(绕 Z)→β(绕新 X)→γ(绕新 Y)。</p>
+
+    <h3>手机真机使用</h3>
+    <ol>
+      <li>浏览器只在 <b>HTTPS 或 localhost</b>（“安全上下文”）提供方向传感器：把本文件夹部署到任意静态托管（GitHub Pages / Vercel / Cloudflare Pages / nginx 等），用手机打开。</li>
+      <li>点击右上角 <b>「传感器」</b>；iOS 会弹窗授权，Android 一般直接可用。</li>
+      <li>若长时间无数据：检查是否 HTTPS、是否给了权限、是否在浏览器内而非第三方 App 内置页。</li>
+      <li>状态 <code>方向:绝对</code> = 拿到罗盘绝对方位角；<code>相对</code> = 仅相对航向。</li>
+    </ol>
+
+    <h3>电脑（无陀螺仪）怎么体验</h3>
+    <p>自动进入「模拟模式」：用左侧 <b>模拟控制</b> 的 α/β/γ 滑杆，或点击 <b>演示摇摆</b> 自动摆动，3D 模型同步转动，也可按住 3D 画面拖动换视角。点击右上角「模拟模式 / 传感器」随时切换。</p>
+
+    <h3>已知平台差异</h3>
+    <p>个别机型/浏览器对 Euler 角基准与符号存在实现差异（尤其横竖屏与“方向锁定”时），这是厂商实现问题。本页数学严格按 W3C 规范实现，并附 Node 交叉验证测试（<code>tests/orient.test.mjs</code>）。页面不请求摄像头/麦克风/定位，数据只在本地浏览器计算，绝不上传。</p>
+
+    <h3>技术栈</h3>
+    <p>零依赖纯静态页面：CSS 3D 渲染设备模型、Canvas 绘制曲线；姿态矩阵由 <code>js/orient.js</code>（Rodrigues 迭代按内在旋转序）计算。</p>
+  </div>
+</div>
+
+<footer>角度数据仅在本机浏览器内计算 · 不上传任何内容</footer>
+
+<script src="js/orient.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
