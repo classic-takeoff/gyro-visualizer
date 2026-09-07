@@ -16,8 +16,8 @@
     <h1>陀螺仪姿态可视化<small>DeviceOrientation · 实时偏转角度</small></h1>
     <div id="topRight">
       <span class="chip"><span id="dotLive" class="dot"></span><span id="chipMode">—</span></span>
-      <span class="chip opt" id="chipHzWrap">事件 <b id="chipHz">0 Hz</b></span>
-      <span class="chip opt" id="chipAbsWrap">基准 <b id="chipAbs">—</b></span>
+      <span class="chip opt">事件 <b id="chipHz">0 Hz</b></span>
+      <span class="chip opt">基准 <b id="chipAbs">—</b></span>
       <div class="seg" id="segMode">
         <button data-mode="sim" class="active">模拟</button>
         <button data-mode="sensor">传感器</button>
@@ -27,33 +27,10 @@
   </header>
 
   <main>
-    <!-- 左: 3D 场景 -->
     <section class="card" id="sceneCard">
       <h2>3D 姿态<span class="sub">拖动旋转 · 滚轮缩放 · 单击复位视角 · 双击重新对准</span></h2>
       <div id="scene">
-        <div class="stage">
-          <div class="camz" id="camz">
-            <div class="orbit" id="orbit">
-              <div id="axismodel">
-                <div class="ray rayx"></div>
-                <div class="ray rayy"></div>
-                <div class="ray rayz"></div>
-              </div>
-              <div id="phone">
-                <div class="face f-front"><div class="shade"></div>
-                  <div class="screen"><div class="cam"></div><div class="slit"></div><div class="home"></div></div>
-                </div>
-                <div class="face f-back"><div class="shade"></div>
-                  <div class="backface"><div class="ring"></div><div class="dot"></div><div class="line"></div></div>
-                </div>
-                <div class="face f-side f-right"><div class="shade"></div></div>
-                <div class="face f-side f-left"><div class="shade"></div></div>
-                <div class="face f-end f-top"><div class="shade"></div></div>
-                <div class="face f-end f-bottom"><div class="shade"></div></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <canvas id="model"></canvas>
         <div class="scenehint">
           <span class="x"><i></i>x 向右</span>
           <span class="y"><i></i>y 顶部</span>
@@ -63,7 +40,6 @@
       </div>
     </section>
 
-    <!-- 右: 数据 -->
     <aside id="side">
       <section class="card">
         <h2>偏转角度<span class="sub">相对起始拿姿(α 方位/β 俯仰/γ 横滚)</span></h2>
@@ -131,32 +107,20 @@
   </main>
 </div>
 
-<!-- 帮助 -->
 <div class="overlay" id="helpOv">
   <div class="modal">
     <button class="iconbtn close" id="btnHelpClose">✕</button>
     <h2>🧭 陀螺仪姿态可视化 — 帮助</h2>
-
     <h3>怎么用</h3>
     <ol>
-      <li>用手机(建议<b>竖屏</b>)打开本页(需 HTTPS)，点右上角<b>「传感器」</b>；iOS 会弹窗，点“允许”。</li>
-      <li>授权后<b>按平时拿手机的样子竖着拿好</b>，1 秒内页面自动以此姿势作为“起始基准”：此时模型显示为竖立、屏幕正对观察者，α/β/γ 归到 90/0 等基准值。</li>
-      <li>之后转动/倾斜手机，模型与角度随之相对变化：平放桌面→模型平放(β→0)；翻转→模型翻面(β→180)；左右倾→γ 正负。</li>
-      <li>若中途想换基准：<b>在 3D 画面上快速双击</b>即可用你当前拿法重新对准。单击画面 = 复位视角；按住拖动 = 转视角；滚轮/双指缩放。</li>
+      <li>手机(建议<b>竖屏</b>)打开本页(需 HTTPS)，点右上角<b>「传感器」</b>；iOS 弹窗选“允许”。</li>
+      <li>授权后<b>按平时拿手机的样子竖握拿稳约 1 秒</b>，页面自动以此姿势为“起始基准”，模型显示为竖立、正对观察者。</li>
+      <li>之后模型与 α/β/γ 均为相对该基准的变化：平放→β≈0、翻转→β≈180、左/右倾→γ、转身→α。</li>
+      <li>双击 3D 画面 = 用当前拿法重新对准；单击 = 复位视角；拖动 = 转视角；滚轮/双指 = 缩放。</li>
     </ol>
-
-    <h3>角度为什么是“相对”的</h3>
-    <p>不同手机/浏览器的传感器坐标基准差异很大（不少机型硬件方向为横屏）。为让“你怎么拿，模型就怎么显示”，页面把<b>你授权那一刻的拿姿自动设为基准</b>，此后 α/β/γ 均为相对该基准的角度，含义直观且跨机型一致：β 90=竖立正对、0=平放屏朝上、180=翻转屏朝下；γ 左/右倾；α 绕屏幕法线转动。</p>
-    <p>读数经过平滑滤波，避免手持微抖造成跳动；若嫌太“钝”，模型永远跟手但不剧烈抖。</p>
-
-    <h3>模型怎么看</h3>
-    <p>深色渐变=屏幕正面，浅色=机身背面；模型上发光射线为设备坐标轴：红 x(向右)、绿 y(顶部)、蓝 z(屏幕法线)。</p>
-
-    <h3>没有传感器 / 想先看效果</h3>
-    <p>电脑浏览器自动进入<b>模拟模式</b>：用 α/β/γ 滑杆或“演示摇摆”驱动同一套渲染。</p>
-
-    <h3>隐私与实现</h3>
-    <p>方向数据仅在本机浏览器计算，绝不上传。零依赖：CSS 3D 渲染、Canvas 曲线、姿态矩阵在 <code>js/orient.js</code>（附 Node 交叉验证 <code>node tests/orient.test.mjs</code>）。</p>
+    <h3>实现</h3>
+    <p>模型用 <b>Canvas 2D 投影渲染</b>（无 DOM 3D 图层、无每帧透明度重绘），姿态矩阵驱动顶点投影，手机为圆角棱柱：正面深色屏幕、背面浅色、侧边区分明暗；红/绿/蓝短射线标出设备 x/y/z 轴。</p>
+    <p>角度 = 相对起始拿姿，经小幅平滑。方向数据仅在本机计算、绝不上传。</p>
   </div>
 </div>
 
