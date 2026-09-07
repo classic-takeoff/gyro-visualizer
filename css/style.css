@@ -36,7 +36,7 @@ header h1 small{display:block; font-size:11px; color:var(--dim); font-weight:400
 .iconbtn:hover{background:var(--panel2); color:var(--txt)}
 
 main{display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:12px; padding:12px; min-height:0; overflow:hidden}
-@media (max-width:1020px){ main{grid-template-columns:1fr; overflow:auto} #sceneCard{min-height:360px} }
+@media (max-width:1020px){ main{grid-template-columns:1fr; overflow:auto} #sceneCard{min-height:400px} }
 
 .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; position:relative;
   backdrop-filter:blur(6px)}
@@ -47,73 +47,100 @@ main{display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:12px; padding:
 #sceneCard{display:flex; flex-direction:column}
 #scene{position:relative; flex:1; min-height:0; border-radius:12px; overflow:hidden;
   background:
-    radial-gradient(560px 400px at 50% 40%, rgba(255,255,255,.055), transparent 65%),
-    repeating-radial-gradient(circle at 50% 42%, transparent 0 34px, rgba(255,255,255,.016) 34px 35px),
-    linear-gradient(180deg, rgba(255,255,255,.02), transparent 55%);
+    radial-gradient(620px 430px at 50% 40%, rgba(255,255,255,.06), transparent 62%),
+    repeating-radial-gradient(circle at 50% 42%, transparent 0 36px, rgba(255,255,255,.017) 36px 37px),
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 55%);
   border:1px solid var(--line); touch-action:none; cursor:grab; user-select:none}
 #scene.dragging{cursor:grabbing}
-.stage{position:absolute; inset:0; perspective:1200px; display:grid; place-items:center}
+.stage{position:absolute; inset:0; perspective:1250px; display:grid; place-items:center}
 .camz{transform-style:preserve-3d}
 .orbit{transform-style:preserve-3d; position:relative; width:0;height:0}
-#phone{position:absolute; left:0; top:0; width:var(--pw,96px); height:var(--ph,206px);
-  transform-style:preserve-3d; transform:translate(-50%,-50%)}
+/* 设备轴射线(与手机同矩阵, 置于手机前以保证被机身遮挡根部) */
+#axismodel{position:absolute; left:0; top:0; width:var(--pw,96px); height:var(--ph,206px);
+  transform-style:preserve-3d; pointer-events:none}
+.ray{position:absolute; border-radius:2px}
+.rayx{left:calc(var(--pw,96px)/2); top:50%; width:calc(var(--pw,96px)/2 + 30px); height:3px;
+  margin-top:-1.5px; background:linear-gradient(90deg, rgba(255,91,91,.0), #ff5b5b 55%, #ffb3b3);
+  box-shadow:0 0 10px rgba(255,91,91,.55)}
+.rayy{top:calc(var(--ph,206px)/2); left:50%; height:calc(var(--ph,206px)/2 + 30px); width:3px;
+  margin-left:-1.5px; background:linear-gradient(180deg, rgba(55,231,135,.0), #37e787 55%, #b6ffd6);
+  box-shadow:0 0 10px rgba(55,231,135,.5)}
+.rayz{left:calc(var(--pw,96px)/2); top:50%; width:calc(var(--pw,96px)/2 + 30px); height:3px;
+  margin-top:-1.5px; transform:rotateY(-90deg); transform-origin:left center;
+  background:linear-gradient(90deg, rgba(57,197,255,.0), #39c5ff 55%, #b3e6ff);
+  box-shadow:0 0 10px rgba(57,197,255,.55)}
 /* 手机几何: 设备系 x=宽(屏幕向右), y=长(顶在 +y), z=屏幕法线(向外)。CSS 局部坐标 y 向下,
    故设备顶部(物理上部)对应本 div 的底部边缘 —— 开槽等"顶部元素"放在下方。 */
+#phone{position:absolute; left:0; top:0; width:var(--pw,96px); height:var(--ph,206px);
+  transform-style:preserve-3d; transform:translate(-50%,-50%)}
 .face{position:absolute; left:50%; top:50%; transform-style:preserve-3d;
-  backface-visibility:hidden; background:#0e1219; box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+  backface-visibility:hidden}
 .face .shade{position:absolute; inset:0; background:#000; opacity:0; pointer-events:none}
-.f-front,.f-back{width:var(--pw,96px); height:var(--ph,206px); margin-left:calc(var(--pw,96px)/-2); margin-top:calc(var(--ph,206px)/-2); border-radius:20px; overflow:hidden}
-.f-front{transform:translateZ(calc(var(--pd,12px)/2)); background:linear-gradient(145deg,#151b28,#0b0e15)}
-.f-back{transform:rotateY(180deg) translateZ(calc(var(--pd,12px)/2))}
+.f-front,.f-back{width:var(--pw,96px); height:var(--ph,206px); margin-left:calc(var(--pw,96px)/-2); margin-top:calc(var(--ph,206px)/-2); border-radius:21px; overflow:hidden}
+.f-front{transform:translateZ(calc(var(--pd,12px)/2));
+  background:linear-gradient(150deg,#262f42 0%, #171d2c 45%, #0d1119 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.09), inset 0 0 26px rgba(0,0,0,.55)}
+.f-back{transform:rotateY(180deg) translateZ(calc(var(--pd,12px)/2));
+  background:linear-gradient(160deg,#e8edf6 0%, #b9c4d6 55%, #8795ac 100%);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.28)}
 .f-side{width:var(--pd,12px); height:var(--ph,206px); margin-left:calc(var(--pd,12px)/-2); margin-top:calc(var(--ph,206px)/-2)}
-.f-right{transform:rotateY(90deg) translateZ(calc(var(--pw,96px)/2)); background:#0d1119}
-.f-left{transform:rotateY(-90deg) translateZ(calc(var(--pw,96px)/2)); background:#090c12}
+.f-right{transform:rotateY(90deg) translateZ(calc(var(--pw,96px)/2)); background:#4a5568}
+.f-left{transform:rotateY(-90deg) translateZ(calc(var(--pw,96px)/2)); background:#20242f}
 .f-end{width:var(--pw,96px); height:var(--pd,12px); margin-left:calc(var(--pw,96px)/-2); margin-top:calc(var(--pd,12px)/-2)}
-.f-top{transform:rotateX(-90deg) translateZ(calc(var(--ph,206px)/2)); background:#1a2030}
-.f-bottom{transform:rotateX(90deg) translateZ(calc(var(--ph,206px)/2)); background:#0a0d14}
-/* 屏幕(正面内容: 纯图形、左右/上下对称, 无文字以规避 CSS3D 手性翻转) */
-.screen{position:absolute; inset:8px; border-radius:14px; overflow:hidden;
+.f-top{transform:rotateX(-90deg) translateZ(calc(var(--ph,206px)/2)); background:#6d7b92}
+.f-bottom{transform:rotateX(90deg) translateZ(calc(var(--ph,206px)/2)); background:#10131b}
+/* 屏幕(正面, 图形化: 让"这是一块手机屏"一眼可辨) */
+.screen{position:absolute; inset:7px; border-radius:16px; overflow:hidden;
   background:
-    linear-gradient(160deg, rgba(76,201,240,.16), transparent 42%),
-    linear-gradient(200deg, rgba(255,255,255,.05), transparent 30%),
-    radial-gradient(120% 90% at 50% 118%, rgba(55,231,135,.10), transparent 55%),
-    linear-gradient(180deg,#10141f 0%, #070a12 100%);
-  border:1px solid rgba(255,255,255,.08)}
+    radial-gradient(150% 120% at 22% 18%, rgba(120,220,255,.34), transparent 42%),
+    radial-gradient(120% 100% at 86% 78%, rgba(150,120,255,.30), transparent 48%),
+    linear-gradient(165deg,#141b2c 0%, #1c2b4a 45%, #3a2f63 100%);
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:inset 0 0 22px rgba(0,0,0,.6)}
 .screen::after{content:''; position:absolute; inset:0;
-  background:linear-gradient(115deg, rgba(255,255,255,.09), transparent 30%)}
+  background:linear-gradient(118deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.05) 18%, transparent 34%)}
 /* 顶部部件置于 div 底部(=设备顶部): 摄像头 + 开槽 */
-.cam{position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-  width:9px;height:9px;border-radius:50%; background:radial-gradient(circle at 35% 32%, #9fb4d8, #22304d 55%, #05070c);
-  box-shadow:0 0 0 2px rgba(10,14,22,.9), 0 1px 3px rgba(0,0,0,.8); z-index:2}
-.slit{position:absolute; bottom:13px; left:50%; transform:translateX(-50%);
-  width:44px;height:5px;border-radius:3px; background:rgba(3,5,9,.85); border:1px solid rgba(255,255,255,.05); z-index:1}
+.cam{position:absolute; bottom:9px; left:50%; transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%; background:radial-gradient(circle at 35% 32%, #9fb4d8, #22304d 55%, #05070c);
+  box-shadow:0 0 0 2px rgba(10,14,22,.92), 0 1px 3px rgba(0,0,0,.8); z-index:2}
+.slit{position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+  width:46px;height:6px;border-radius:3px; background:rgba(3,5,9,.9); border:1px solid rgba(255,255,255,.06); z-index:1}
 /* 底部部件(Home 条)置于 div 顶部(=设备底部) */
-.home{position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  width:64px;height:4px;border-radius:3px; background:rgba(255,255,255,.16)}
-.sheen{position:absolute; inset:0; opacity:.9;
-  background:radial-gradient(80px 190px at 26% 60%, rgba(255,255,255,.10), transparent 70%),
-             radial-gradient(70px 160px at 76% 44%, rgba(76,201,240,.07), transparent 70%)}
-/* 背面 */
-.backface{position:absolute; inset:9px; border-radius:14px; transform:rotateY(180deg);
-  background:linear-gradient(180deg,#232c40,#141927 72%); border:1px solid rgba(255,255,255,.07)}
-.backface .ring{position:absolute; inset:0; border-radius:14px;
-  background:radial-gradient(circle at 50% 40%, rgba(76,201,240,.10), transparent 55%)}
-.backface .dot{position:absolute; top:auto; bottom:12px; left:50%; transform:translateX(-50%);
-  width:16px;height:16px;border-radius:8px; background:linear-gradient(150deg,#3a4763,#0c111d);
-  border:1px solid rgba(255,255,255,.10)}
-.backface .line{position:absolute; top:12px; left:50%; transform:translateX(-50%);
-  width:26px;height:4px;border-radius:2px;background:rgba(255,255,255,.08)}
-/* 世界参考系提示 */
-.scenehint{position:absolute; left:12px; top:10px; display:flex; gap:12px; font-size:10.5px; color:var(--dim);
-  background:rgba(6,9,16,.5); border:1px solid var(--line); border-radius:8px; padding:5px 9px; pointer-events:none}
-.scenehint i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.home{position:absolute; top:11px; left:50%; transform:translateX(-50%);
+  width:66px;height:5px;border-radius:3px; background:rgba(255,255,255,.2); box-shadow:0 0 6px rgba(255,255,255,.12)}
+/* 背面浅色机身, 摄像头模块 */
+.backface{position:absolute; inset:8px; border-radius:15px; transform:rotateY(180deg);
+  background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 60%);
+  border:1px solid rgba(255,255,255,.35)}
+.backface .ring{position:absolute; inset:0; border-radius:15px;
+  background:radial-gradient(circle at 50% 42%, rgba(90,110,150,.12), transparent 55%)}
+.backface .dot{position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+  width:22px;height:22px;border-radius:11px; background:linear-gradient(150deg,#3a4763,#0c111d);
+  border:1px solid rgba(255,255,255,.4); box-shadow:0 2px 5px rgba(0,0,0,.35)}
+.backface .line{position:absolute; top:13px; left:50%; transform:translateX(-50%);
+  width:30px;height:5px;border-radius:3px;background:rgba(60,75,100,.5)}
+
+/* 场景浮动提示 */
+.scenehint{position:absolute; left:10px; top:10px; display:flex; gap:10px; font-size:10px; color:var(--dim);
+  background:rgba(6,9,16,.55); border:1px solid var(--line); border-radius:8px; padding:4px 8px; pointer-events:none; flex-wrap:wrap; max-width:70%}
+.scenehint i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:-1px; box-shadow:0 0 5px currentColor}
+.scenehint .x{color:#ff8f8f}.scenehint .y{color:#6cf0a4}.scenehint .z{color:#7ad9ff}
 .scenehint .x i{background:#ff5b5b}.scenehint .y i{background:#37e787}.scenehint .z i{background:#39c5ff}
-/* 罗盘浮层 */
-#compass{position:absolute; right:12px; top:10px; width:92px; height:92px; border-radius:50%;
-  border:1px solid var(--line); background:rgba(6,9,16,.55)}
+#compass{position:absolute; right:10px; top:10px; width:88px; height:88px; border-radius:50%;
+  border:1px solid var(--line); background:rgba(6,9,16,.6)}
 #compass svg{width:100%;height:100%}
-.scenehint2{position:absolute; left:12px; bottom:8px; font-size:10px; color:var(--dim2); pointer-events:none}
-.scenehint2 b{color:var(--dim)}
+/* 视角工具条 */
+.viewbar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:10px}
+.toolbtn{border:1px solid var(--line); background:var(--panel2); color:var(--txt); font:inherit; font-size:11.5px;
+  padding:6px 10px; border-radius:9px; cursor:pointer; transition:.15s; white-space:nowrap}
+.toolbtn:hover{background:rgba(255,255,255,.14)}
+.toolbtn.primary{background:linear-gradient(135deg,#27a8d8,#6a5cff); border-color:transparent; font-weight:600}
+.toolbtn.warn{border-color:rgba(255,209,102,.5); color:#ffe2a6}
+.toolbtn:disabled{opacity:.4; cursor:default}
+.smooth{display:flex; align-items:center; gap:8px; margin-left:auto; font-size:11px; color:var(--dim)}
+.smooth input{width:110px}
+#smVal{font-family:var(--mono); min-width:26px; text-align:right; color:var(--txt)}
+#fixChip{font-size:10.5px; color:var(--warn); border:1px dashed rgba(255,209,102,.5); padding:2px 7px; border-radius:7px; display:none}
 
 /* 右侧列 */
 #side{display:flex; flex-direction:column; gap:12px; min-height:0; overflow:auto; padding-right:2px}
@@ -154,7 +181,7 @@ input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:5
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:17px;height:17px; border-radius:50%;
   background:#fff; border:3px solid var(--c,#4cc9f0); box-shadow:0 0 6px rgba(0,0,0,.5); cursor:pointer}
 input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:#fff;border:3px solid var(--c,#4cc9f0);cursor:pointer}
-#simA{--c:var(--a)} #simB{--c:var(--b)} #simG{--c:var(--g)}
+#simA{--c:var(--a)} #simB{--c:var(--b)} #simG{--c:var(--g)} #smoothR{--c:var(--ok)}
 .simActions{display:flex; gap:8px; margin-top:2px}
 .btn{flex:1; border:1px solid var(--line); background:var(--panel2); color:var(--txt); font:inherit; font-size:12.5px;
   padding:7px 6px; border-radius:9px; cursor:pointer; transition:.15s}
@@ -169,8 +196,8 @@ footer{position:fixed; left:0; right:0; bottom:0; font-size:10px; color:var(--di
 .overlay{position:fixed; inset:0; background:rgba(2,4,9,.72); backdrop-filter:blur(3px); display:none; z-index:40;
   align-items:center; justify-content:center; padding:18px}
 .overlay.show{display:flex}
-.modal{background:#0b101b; border:1px solid var(--line); border-radius:18px; max-width:640px; width:100%;
-  max-height:88dvh; overflow:auto; padding:20px 24px; box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.modal{background:#0b101b; border:1px solid var(--line); border-radius:18px; max-width:660px; width:100%;
+  max-height:88dvh; overflow:auto; padding:20px 26px; box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .modal h2{margin:0 0 4px; font-size:17px}
 .modal h3{font-size:13px; color:var(--a); margin:16px 0 6px}
 .modal p, .modal li{font-size:12.5px; line-height:1.8; color:#c6d2e4}
